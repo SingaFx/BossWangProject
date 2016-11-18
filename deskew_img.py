@@ -2,6 +2,7 @@ import cv2
 
 import numpy as np
 import math
+import os
 
 def houghSpace(im):
     maxTheta = 180
@@ -43,36 +44,50 @@ def houghSpace(im):
     houghSpace = houghSpace / np.max(houghSpace)
     return np.reshape(houghSpace , (houghMatrixRows, houghMatrixCols))
 
+def deskew(filename, directory):
+    outdir = directory + '/rotate/'
+    im = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+    h, w = im.shape
 
-filename = 'img/l_img80.jpeg'
+    # image resizing
+    im = cv2.resize(im, (w/3,h/3))
 
-im = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-h, w = im.shape
+    # canny edge detector
+    im = cv2.Canny(im, 100, 200)
 
-# image resizing
-im = cv2.resize(im, (w/3,h/3))
+    # Application of the calculation of the space of the image input hough
+    hSpace = houghSpace(im)
 
-# canny edge detector
-im = cv2.Canny(im, 100, 200)
-
-# Application of the calculation of the space of the image input hough
-hSpace = houghSpace(im)
-
-# filtering of peaks
-hSpace[hSpace < 0.8] = 0
-# histogram calculation
-hist = sum(hSpace)
-# perpendicular angle calculation
-theta1 = 90 - np.argmax(hist)
+    # filtering of peaks
+    hSpace[hSpace < 0.8] = 0
+    # histogram calculation
+    hist = sum(hSpace)
+    # perpendicular angle calculation
+    theta1 = 90 - np.argmax(hist)
 
 
-# color image reading
-im = cv2.imread(filename, cv2.IMREAD_COLOR)
+    # color image reading
+    im = cv2.imread(filename, cv2.IMREAD_COLOR)
 
-# image rotation
-h, w, d = im.shape
-rotation_M = cv2.getRotationMatrix2D((w / 2, h / 2), -theta1, 1)
-rotated_im = cv2.warpAffine(im, rotation_M, (w,h), flags=cv2.INTER_CUBIC,borderValue=(255,255,255))
+    # image rotation
+    h, w, d = im.shape
+    rotation_M = cv2.getRotationMatrix2D((w / 2, h / 2), -theta1, 1)
+    rotated_im = cv2.warpAffine(im, rotation_M, (w,h), flags=cv2.INTER_CUBIC,borderValue=(255,255,255))
 
-# write deskew image
-cv2.imwrite('img/rotated.jpg', rotated_im)
+    # write deskew image
+    print outdir + filename
+    cv2.imwrite(outdir + filename, rotated_im)
+
+
+
+if __name__ == '__main__':
+    directory = os.getcwd()
+    indir = directory + '/output/'
+    os.chdir(indir)
+    outdir = directory + '/rotate/'
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    for filename in os.listdir(indir):
+        if filename.endswith(".jpeg"):
+            deskew(filename, directory)
+
