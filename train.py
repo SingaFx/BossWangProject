@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from PIL import Image, ImageDraw, ImageFont
 
 def dense_to_one_hot(labels_dense, num_classes=10):
     num_labels = labels_dense.shape[0]
@@ -77,7 +78,7 @@ np.random.seed(10807)
 
 num_hidden_units = 512
 learn_rate = 0.02
-epochs = 200000
+epochs = 250000
 
 images = train_images
 labels = train_labels
@@ -125,5 +126,8 @@ print "final training loss", train_loss, "training error:", train_error
 # test_loss, test_error = evaluate(p, test_labels)
 # print "test loss", test_loss, "test error:", test_error
 
-print train_images.shape
-print train_labels.shape
+# save model
+np.save("W1", W1)
+np.save("W2", W2)
+np.save("b1", b1)
+np.save("b2", b2)
