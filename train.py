@@ -71,14 +71,29 @@ def evaluate(y, truth):
     return loss, error
 
 classes = 35
-train_images = np.load("pixels.ubyte.npy").T / 255.0
+train_images = np.load("pixels.ubyte.npy").T
 train_labels = dense_to_one_hot(np.load("labels.ubyte.npy"), classes)
+
+
+import matplotlib.pyplot as plt
+
+M,N = 10,20
+fig, ax = plt.subplots(figsize=(N,M))
+digits = np.vstack([np.hstack([np.reshape(train_images[:, i*N+j],(28,28)) 
+                               for j in range(N)]) for i in range(M)])
+ax.imshow(255-digits, cmap=plt.get_cmap('gray'))
+plt.show()
+
+quit()
+
+train_images[train_images < 128.0] = 0
+train_images[train_images > 127.0] = 1
 
 np.random.seed(10807)
 
 num_hidden_units = 512
 learn_rate = 0.02
-epochs = 250000
+epochs = 25000
 
 images = train_images
 labels = train_labels
@@ -90,6 +105,11 @@ b1 = bias_variables(num_hidden_units, 1, 0)
 variance2 = math.sqrt(6.0) / float(classes + num_hidden_units)
 W2 = weight_variables(classes, num_hidden_units, variance2)
 b2 = bias_variables(classes, 1, 0)
+
+W1 = np.load("W1.npy")
+W2 = np.load("W2.npy")
+b1 = np.load("b1.npy")
+b2 = np.load("b2.npy")
 
 num_examples = 50
 images_ones = np.ones((num_examples, 1))

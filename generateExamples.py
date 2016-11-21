@@ -9,7 +9,7 @@ final_h, final_w = 28, 28
 labels = "0123456789ABCDEFGHIJKLMNPQRSTUVWXYZ"
 char_to_class = {labels[i]:i for i in xrange(0, len(labels))}
 
-def drawExample(name, folder, option, save=False):
+def drawExample(name, folder, option, save=True):
     x, y, fontsize, theta, font_file = option
     image = Image.new("L", (w, h), 255)
     draw = ImageDraw.Draw(image)
@@ -22,7 +22,7 @@ def drawExample(name, folder, option, save=False):
     return img_resized
 
 def map_char_to_class(char):
-	return char_to_class[char.upper()]
+    return char_to_class[char.upper()]
 
 for txt in string.digits + string.ascii_uppercase:
     if txt == "O":
