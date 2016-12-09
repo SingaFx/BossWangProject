@@ -31,24 +31,30 @@ data_dir = "data/letter/"
 images = []
 labels = []
 for dir_name in os.listdir(data_dir):
-	if dir_name not in char_to_class:
-		continue
-	label = char_to_class[dir_name]
-	subdir = data_dir + dir_name + '/'
-	for file in glob.glob(subdir + "*.jpeg"):
-		im = Image.open(file)
-		im_expanded = im
-		im_scaled = im_expanded.resize((w, h), Image.ANTIALIAS)
-		images.append(np.asarray(im_scaled).reshape(w * h, 1))
-		labels.append(label)
+    if dir_name not in char_to_class:
+        continue
+    label = char_to_class[dir_name]
+    subdir = data_dir + dir_name + '/'
+    for file in glob.glob(subdir + "*.jpeg"):
+        im = Image.open(file)
+        raw_w, raw_h = im.size
+        if raw_w < raw_h - 1:
+            im_expanded = Image.new('L', (raw_h, raw_h), 255)
+            x_off = (raw_h - raw_w) / 2
+            im_expanded.paste(im, (x_off, 0, x_off + raw_w, raw_h))
+        else:
+            im_expanded = im
+        im_scaled = im_expanded.resize((w, h), Image.ANTIALIAS)
+        images.append(np.asarray(im_scaled).reshape(w * h, 1))
+        labels.append(label)
 
 num_examples = len(images)
 dev_pixels = np.zeros((num_examples, w * h), dtype=np.ubyte)
 dev_labels = np.zeros(num_examples, dtype=np.ubyte)
 
 for i in xrange(0, num_examples):
-	dev_pixels[i, :] = images[i][:, 0]
-	dev_labels[i] = labels[i]
+    dev_pixels[i, :] = images[i][:, 0]
+    dev_labels[i] = labels[i]
 
 np.save("dev-pixels.ubyte", dev_pixels)
 np.save("dev-labels.ubyte", dev_labels)
