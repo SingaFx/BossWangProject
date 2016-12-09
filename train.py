@@ -70,21 +70,22 @@ def evaluate(y, truth):
     error = error_rate(p, truth)
     return loss, error
 
+pixels_filename = "pixels.ubyte.npy"
+labels_filename = "labels.ubyte.npy"
+
 classes = 35
-train_images = np.load("pixels.ubyte.npy").T
-train_labels = dense_to_one_hot(np.load("labels.ubyte.npy"), classes)
+train_images = np.load(pixels_filename).T
+train_labels = dense_to_one_hot(np.load(labels_filename), classes)
 
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-M,N = 10,20
-fig, ax = plt.subplots(figsize=(N,M))
-digits = np.vstack([np.hstack([np.reshape(train_images[:, i*N+j],(28,28)) 
-                               for j in range(N)]) for i in range(M)])
-ax.imshow(255-digits, cmap=plt.get_cmap('gray'))
-plt.show()
-
-quit()
+# M,N = 10,20
+# fig, ax = plt.subplots(figsize=(N,M))
+# digits = np.vstack([np.hstack([np.reshape(train_images[:, i*N+j],(28,28)) 
+#                                for j in range(N)]) for i in range(M)])
+# ax.imshow(255-digits, cmap=plt.get_cmap('gray'))
+# plt.show()
 
 train_images[train_images < 128.0] = 0
 train_images[train_images > 127.0] = 1
@@ -92,8 +93,8 @@ train_images[train_images > 127.0] = 1
 np.random.seed(10807)
 
 num_hidden_units = 512
-learn_rate = 0.02
-epochs = 25000
+learn_rate = 0.01
+iterations = 25000
 
 images = train_images
 labels = train_labels
@@ -114,14 +115,14 @@ b2 = np.load("b2.npy")
 num_examples = 50
 images_ones = np.ones((num_examples, 1))
 
-for epoch in range(0, epochs):
+for iteration in range(0, iterations):
     images, labels = get_batch(train_images, train_labels, num_examples)
     h1, y, p = feed_forward(images, W1, b1, W2, b2)
     images_transposed = np.transpose(images)
     
     h1_tranposed = np.transpose(h1)
     
-    if epoch % 5000 == 0:
+    if iteration % 5000 == 0:
         train_loss, train_error = evaluate(p, labels)
         print "training loss", train_loss, "training error:", train_error
 
