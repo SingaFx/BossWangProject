@@ -36,7 +36,7 @@ def deskew(sub, points):
                     top = j
                 if top_line[j] == -1:
                     top_line[j] = i
-    if top < w * 0.4:
+    if top < w * 0.48:
         for i in xrange(top + 1, w):
             if top_line[i] > top_line[i - 1]:
                 break
@@ -46,7 +46,7 @@ def deskew(sub, points):
             theta = np.tanh(vert/hori) * 57.29
         else:
             theta = 0.0
-    elif top > w * 0.6:
+    elif top > w * 0.52:
         for i in xrange(top, 1, -1):
             if top_line[i - 1] > top_line[i]:
                 break
@@ -61,6 +61,53 @@ def deskew(sub, points):
     rotation_M = cv2.getRotationMatrix2D((w / 2, h / 2), theta, 1)
     rotated_im = cv2.warpAffine(sub, rotation_M, (w,h), flags=cv2.INTER_CUBIC,borderValue=(255,255,255))
     return rotated_im
+
+def remove_white_space(img):
+    h, w = img.shape
+    whites = []
+    non_whites = []
+    top, bottom, left, right = -1, h, -1, w
+    # top
+    for i in xrange(0, h / 2):
+        num_whites = 0
+        for j in xrange(0, w):
+            if img[i, j] > threshold:
+                num_whites += 1
+        if num_whites > w / 3:
+            top = i
+        else:
+            break
+    # bottom
+    for i in xrange(h - 1, h / 2 + 1, -1):
+        num_whites = 0
+        for j in xrange(0, w):
+            if img[i, j] > threshold:
+                num_whites += 1
+        if num_whites > w / 3:
+            bottom = i
+        else:
+            break
+    # left
+    for i in xrange(0, w / 2):
+        num_whites = 0
+        for j in xrange(0, h):
+            if img[j, i] > threshold:
+                num_whites += 1
+        if num_whites > h / 3:
+            left = i
+        else:
+            break
+    # right
+    for i in xrange(w - 1, w / 2 + 1, -1):
+        num_whites = 0
+        for j in xrange(0, h):
+            if img[j, i] > threshold:
+                num_whites += 1
+        if num_whites > h / 3:
+            right = i
+        else:
+            break
+    return img[top + 1:bottom, left + 1:right]
 
 def splitReCaptcha(im, directory):
     outdir = directory + '/output/'
@@ -82,9 +129,12 @@ def splitReCaptcha(im, directory):
                         continue
                     sub = backup[min_x : max_x + 1, min_y : max_y + 1]
                     img[min_x : max_x + 1, min_y : max_y + 1] = white
+                    cv2.imwrite(os.path.join(outdir, '{0}_split_{1}.jpeg'.format(filename, count)), sub)
                     if max_x - min_x > singel_char:
                         sub = deskew(sub, points)
-                    cv2.imwrite(os.path.join(outdir, '{0}_split{1}.jpeg'.format(filename, count)), sub)
+                        cv2.imwrite(os.path.join(outdir, '{0}_deskew_{1}.jpeg'.format(filename, count)), sub)
+                        sub = remove_white_space(sub)
+                    cv2.imwrite(os.path.join(outdir, '{0}_remove_white_{1}.jpeg'.format(filename, count)), sub)
                     count += 1
 
 if __name__ == '__main__':
