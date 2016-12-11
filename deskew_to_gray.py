@@ -136,8 +136,8 @@ def deskew_to_gray(im, outdir, white_out_dir):
     filename = im.replace(".jpeg", "")
     filename = filename[filename.rfind('/') + 1:]
     fills = []
-    for i in xrange(0, h):
-        for j in xrange(0, w):
+    for j in xrange(0, w):
+        for i in xrange(0, h):    
             if img[i, j] < white_threshold:
                 points = []
                 dfs(i, j, img[i, j], img, points, white_threshold)
