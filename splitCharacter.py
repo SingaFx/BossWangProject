@@ -170,9 +170,6 @@ if __name__ == '__main__':
     directory = os.getcwd()
     indir = directory + '/input/'
     os.chdir(indir)
-    outdir = directory + '/output/'
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
     for filename in os.listdir(indir):
         if filename.endswith(".jpeg"):
             splitReCaptcha(filename, directory)
