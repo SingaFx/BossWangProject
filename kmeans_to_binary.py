@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn import metrics
 import glob
+import os
 
 def centroid_histogram(clt):
     numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
@@ -25,9 +26,7 @@ def plot_colors(hist, centroids, file):
     plt.imshow(bar)
     plt.savefig(file)
 
-in_dir = "rm_white/"
-
-for file in glob.glob(in_dir + "*fill_white*.jpeg"):
+def process_gray(file):
     img = cv2.imread(file)
     name = file[file.find('/') + 1: file.rfind('.')]
     grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -41,10 +40,10 @@ for file in glob.glob(in_dir + "*fill_white*.jpeg"):
     plot_colors(hist, clt.cluster_centers_, "kmeans/{}.jpeg".format(name))
     # ensure the first one is darker
     if clt.cluster_centers_[0] > clt.cluster_centers_[1]:
-    	avg = clt.cluster_centers_[1] + (clt.cluster_centers_[0] - clt.cluster_centers_[1]) * 3 / 4
-    	hist[0], hist[1] = hist[1], hist[0]
+        avg = clt.cluster_centers_[1] + (clt.cluster_centers_[0] - clt.cluster_centers_[1]) * 3 / 4
+        hist[0], hist[1] = hist[1], hist[0]
     else:
-    	avg = clt.cluster_centers_[0] + (clt.cluster_centers_[1] - clt.cluster_centers_[0]) * 3 / 4
+        avg = clt.cluster_centers_[0] + (clt.cluster_centers_[1] - clt.cluster_centers_[0]) * 3 / 4
     print name, clt.cluster_centers_[0], clt.cluster_centers_[1], avg, hist[0], hist[1]
     # solve bold text
     block_size, C = 39, 2
@@ -59,8 +58,24 @@ for file in glob.glob(in_dir + "*fill_white*.jpeg"):
         new_img = cv2.adaptiveThreshold(grey_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, block_size, C)
         # _, new_img = cv2.threshold(grey_img, avg, 255, cv2.THRESH_BINARY)
     else:
-    	new_img = cv2.adaptiveThreshold(grey_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, block_size, C)
-    	# _, new_img = cv2.threshold(grey_img, avg, 255, cv2.THRESH_BINARY_INV)
+        new_img = cv2.adaptiveThreshold(grey_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, block_size, C)
+        # _, new_img = cv2.threshold(grey_img, avg, 255, cv2.THRESH_BINARY_INV)
     cv2.imwrite("binary/{}.jpeg".format(name), new_img)
+    return "binary/{}.jpeg".format(name), "kmeans/{}.jpeg".format(name)
+
+def gray_to_binary(path):
+    binary = 'binary/'
+    kmeans = 'kmeans/'
+    if not os.path.exists(binary):
+        os.makedirs(binary)
+    if not os.path.exists(kmeans):
+        os.makedirs(kmeans)
+    return process_gray(path)
+
+if __name__ == '__main__':
+    in_dir = "rm_white/"
+    for file in glob.glob(in_dir + "*fill_white*.jpeg"):
+        gray_to_binary(file)
+
 
 
