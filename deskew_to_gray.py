@@ -134,6 +134,7 @@ def deskew_to_gray(im, outdir, white_out_dir):
     h, w = img.shape[0], img.shape[1]
     count = 0
     filename = im.replace(".jpeg", "")
+    filename = filename[filename.rfind('/') + 1:]
     fills = []
     for i in xrange(0, h):
         for j in xrange(0, w):
