@@ -129,13 +129,7 @@ def fill_white_space(img):
         img[i, j] = darkest
     return img
 
-def splitReCaptcha(im, directory):
-    outdir = directory + '/output/'
-    white_out_dir = directory + '/rm_white/'
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    if not os.path.exists(white_out_dir):
-        os.makedirs(white_out_dir)
+def splitReCaptcha(im, directory, outdir, white_out_dir):
     img = cv2.imread(im, 0)
     backup = img.copy()
     h, w = img.shape[0], img.shape[1]
@@ -154,7 +148,6 @@ def splitReCaptcha(im, directory):
                         continue
                     sub = backup[min_x : max_x + 1, min_y : max_y + 1]
                     img[min_x : max_x + 1, min_y : max_y + 1] = white
-                    print filename + "_" + str(count),
                     cv2.imwrite(os.path.join(outdir, '{0}_split_{1}.jpeg'.format(filename, count)), sub)
                     if max_x - min_x > singel_char:
                         sub = deskew(sub, points)
@@ -170,6 +163,12 @@ if __name__ == '__main__':
     directory = os.getcwd()
     indir = directory + '/input/'
     os.chdir(indir)
+    outdir = directory + '/output/'
+    white_out_dir = directory + '/rm_white/'
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    if not os.path.exists(white_out_dir):
+        os.makedirs(white_out_dir)
     for filename in os.listdir(indir):
         if filename.endswith(".jpeg"):
-            splitReCaptcha(filename, directory)
+            splitReCaptcha(filename, directory, outdir, white_out_dir)
