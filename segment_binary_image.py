@@ -149,9 +149,9 @@ def text_to_characters(im, outdir):
         cv2.imwrite(char_name, img)
         results.append(char_name)
         return results
-
-    for i in xrange(0, h):
-        for j in xrange(0, w):
+    # read from left to right
+    for j in xrange(0, w):
+        for i in xrange(0, h): 
             if img[i, j] < white_threshold:
                 points = []
                 dfs(i, j, img[i, j], img, points, white_threshold, SEARCH_NONWHITE)
