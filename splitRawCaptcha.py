@@ -4,26 +4,31 @@ import os
 import sys
 
 white = 255
-threshold = 240 # white background
+black = 0
+white_threshold = 238 # white background
 diff = 230
 num_threshold = 20 # noise
 small_threshold = 8
 singel_char = 50
 
+SEARCH_WHITE = 0
+SEARCH_NONWHITE = 1
+
 def abs_diff(a, b):
     return (a - b) if a > b else (b - a)
 
-def dfs(i, j, prev, img, points):
+def dfs(i, j, prev, img, points, threshold, flag=SEARCH_NONWHITE):
     h, w = img.shape[0], img.shape[1]
     if i >= 0 and j >= 0 and i < h and j < w and \
-        img[i, j] < threshold and abs_diff(img[i, j], prev) < diff:
+        (flag == SEARCH_NONWHITE) == (img[i, j] < threshold) and \
+        abs_diff(img[i, j], prev) < diff:
         points.append([i, j])
-        img[i, j] = white
-        dfs(i - 1, j, img[i, j], img, points)
-        dfs(i + 1, j, img[i, j], img, points)
-        dfs(i, j - 1, img[i, j], img, points)
-        dfs(i, j + 1, img[i, j], img, points)
-        return points
+        img[i, j] = white if flag == SEARCH_NONWHITE else black
+        dfs(i - 1, j, img[i, j], img, points, threshold, flag)
+        dfs(i + 1, j, img[i, j], img, points, threshold, flag)
+        dfs(i, j - 1, img[i, j], img, points, threshold, flag)
+        dfs(i, j + 1, img[i, j], img, points, threshold, flag)
+    return points
 
 def deskew(sub, points):
     h, w = sub.shape[0], sub.shape[1]
@@ -31,7 +36,7 @@ def deskew(sub, points):
     top_line = [-1] * w
     for i in xrange(0, h):
         for j in xrange(0, w):
-            if sub[i, j] < threshold:
+            if sub[i, j] < white_threshold:
                 if top == -1:
                     top = j
                 if top_line[j] == -1:
@@ -71,7 +76,7 @@ def remove_white_space(img):
     for i in xrange(0, h / 2):
         num_whites = 0
         for j in xrange(0, w):
-            if img[i, j] > threshold:
+            if img[i, j] > white_threshold:
                 num_whites += 1
         if num_whites > w / 3:
             top = i
@@ -81,19 +86,20 @@ def remove_white_space(img):
     for i in xrange(h - 1, h / 2 + 1, -1):
         num_whites = 0
         for j in xrange(0, w):
-            if img[i, j] > threshold:
+            if img[i, j] > white_threshold:
                 num_whites += 1
         if num_whites > w / 3:
             bottom = i
         else:
             break
+    offset = top + h - bottom
     # left
     for i in xrange(0, w / 2):
         num_whites = 0
         for j in xrange(0, h):
-            if img[j, i] > threshold:
+            if img[j, i] > white_threshold:
                 num_whites += 1
-        if num_whites > h / 3:
+        if num_whites > (h + offset) / 3:
             left = i
         else:
             break
@@ -101,27 +107,40 @@ def remove_white_space(img):
     for i in xrange(w - 1, w / 2 + 1, -1):
         num_whites = 0
         for j in xrange(0, h):
-            if img[j, i] > threshold:
+            if img[j, i] > white_threshold:
                 num_whites += 1
-        if num_whites > h / 3:
+        if num_whites > (h + offset) / 3:
             right = i
         else:
             break
     return img[top + 1:bottom, left + 1:right]
 
-def splitReCaptcha(im, directory):
-    outdir = directory + '/output/'
+def fill_white_space(img):
+    h, w = img.shape
+    samples = np.concatenate((img[0, :], img[h - 1, :]))
+    darkest = np.median(samples)
+    points = []
+    th = darkest + (white_threshold - darkest) * 3 / 4
+    dfs(0, 0, img[0, 0], img, points, th, SEARCH_WHITE)
+    dfs(0, w - 1, img[0, w - 1], img, points, th, SEARCH_WHITE)
+    dfs(h - 1, 0, img[h - 1, 0], img, points, th, SEARCH_WHITE)
+    dfs(h - 1, w - 1, img[h - 1, w - 1], img, points, th, SEARCH_WHITE)
+    for i, j in points:
+        img[i, j] = darkest
+    return img
+
+def splitReCaptcha(im, directory, outdir, white_out_dir):
     img = cv2.imread(im, 0)
     backup = img.copy()
     h, w = img.shape[0], img.shape[1]
     count = 0
-
     filename = im.replace(".jpeg", "")
+
     for i in xrange(0, h):
         for j in xrange(0, w):
-            if img[i, j] < threshold:
+            if img[i, j] < white_threshold:
                 points = []
-                dfs(i, j, img[i, j], img, points)
+                dfs(i, j, img[i, j], img, points, white_threshold)
                 if len(points) > num_threshold:
                     min_x, min_y = np.min(points, axis=0)
                     max_x, max_y = np.max(points, axis=0)
@@ -134,7 +153,9 @@ def splitReCaptcha(im, directory):
                         sub = deskew(sub, points)
                         cv2.imwrite(os.path.join(outdir, '{0}_deskew_{1}.jpeg'.format(filename, count)), sub)
                         sub = remove_white_space(sub)
-                    cv2.imwrite(os.path.join(outdir, '{0}_remove_white_{1}.jpeg'.format(filename, count)), sub)
+                        cv2.imwrite(os.path.join(white_out_dir, '{0}_remove_white_{1}.jpeg'.format(filename, count)), sub)
+                        sub = fill_white_space(sub)
+                    cv2.imwrite(os.path.join(white_out_dir, '{0}_fill_white_{1}.jpeg'.format(filename, count)), sub)
                     count += 1
 
 if __name__ == '__main__':
@@ -143,8 +164,11 @@ if __name__ == '__main__':
     indir = directory + '/input/'
     os.chdir(indir)
     outdir = directory + '/output/'
+    white_out_dir = directory + '/rm_white/'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
+    if not os.path.exists(white_out_dir):
+        os.makedirs(white_out_dir)
     for filename in os.listdir(indir):
         if filename.endswith(".jpeg"):
-            splitReCaptcha(filename, directory)
+            splitReCaptcha(filename, directory, outdir, white_out_dir)
