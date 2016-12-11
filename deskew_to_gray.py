@@ -161,9 +161,11 @@ def deskew_to_gray(im, outdir, white_out_dir):
     # generally fill white space has very little effect, so do not show it for simplicity
     return fills
 
-def preprocess_raw_image(path):
+def preprocess_raw_image(path, outdir):
     sys.setrecursionlimit(20000)
-    return deskew_to_gray(path, "output/", "output/")
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    return deskew_to_gray(path, outdir, outdir)
 
 if __name__ == '__main__':
     sys.setrecursionlimit(20000)
