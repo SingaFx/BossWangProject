@@ -20,8 +20,7 @@ def abs_diff(a, b):
 def dfs(i, j, prev, img, points, threshold, flag=SEARCH_NONWHITE):
     h, w = img.shape[0], img.shape[1]
     if i >= 0 and j >= 0 and i < h and j < w and \
-        (flag == SEARCH_NONWHITE) == (img[i, j] < threshold) and \
-        abs_diff(img[i, j], prev) < diff:
+        (flag == SEARCH_NONWHITE) == (img[i, j] < threshold):
         points.append([i, j])
         img[i, j] = white if flag == SEARCH_NONWHITE else black
         dfs(i - 1, j, img[i, j], img, points, threshold, flag)
