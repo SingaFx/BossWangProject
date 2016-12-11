@@ -124,7 +124,7 @@ def remove_all_black(img):
     succeed = (top < num_black_lines and left < num_black_lines and (w - right) < num_black_lines and (h - bottom) < num_black_lines)
     return img[top + 1:bottom, left + 1:right], succeed
 
-def splitReCaptcha(im, directory, outdir, white_out_dir):
+def text_to_characters(im, outdir):
     raw_img = cv2.imread(im, 0)
     
     _, img = cv2.threshold(raw_img,127,255,cv2.THRESH_BINARY)
@@ -134,15 +134,22 @@ def splitReCaptcha(im, directory, outdir, white_out_dir):
         img, succeed = remove_all_black(img)
     # cannot segment
     if not succeed:
-        return
+        return []
 
     backup = img.copy()
     h, w = img.shape[0], img.shape[1]
     count = 0
+
     filename = im.replace(".jpeg", "")
-    if h > w + 1:
-       cv2.imwrite(os.path.join(outdir, '{0}_final.jpeg'.format(filename)), img)
-       return
+    filename = filename[filename.rfind('/') + 1:]
+    results = []
+
+    if h > w + 1: # likely to be single chars, no need to segment
+        char_name = os.path.join(outdir, '{0}_final.jpeg'.format(filename))
+        cv2.imwrite(char_name, img)
+        results.append(char_name)
+        return results
+
     for i in xrange(0, h):
         for j in xrange(0, w):
             if img[i, j] < white_threshold:
@@ -155,8 +162,12 @@ def splitReCaptcha(im, directory, outdir, white_out_dir):
                         continue
                     sub = backup[min_x : max_x + 1, min_y : max_y + 1]
                     img[min_x : max_x + 1, min_y : max_y + 1] = white
-                    cv2.imwrite(os.path.join(outdir, '{0}_final_{1}.jpeg'.format(filename, count)), sub)
+                    char_name = os.path.join(outdir, '{0}_final_{1}.jpeg'.format(filename, count))
+                    cv2.imwrite(char_name, sub)
+                    results.append(char_name)
                     count += 1
+
+    return results
 
 if __name__ == '__main__':
     sys.setrecursionlimit(20000)
@@ -164,11 +175,8 @@ if __name__ == '__main__':
     indir = directory + '/binary/'
     os.chdir(indir)
     outdir = directory + '/binary_out/'
-    white_out_dir = directory + '/binary_white/'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    if not os.path.exists(white_out_dir):
-        os.makedirs(white_out_dir)
     for filename in os.listdir(indir):
         if filename.endswith(".jpeg"):
-            splitReCaptcha(filename, directory, outdir, white_out_dir)
+            text_to_characters(filename, outdir)

@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 import numpy as np
+import cv2
 
 def plot_images(paths):
     images = [cv2.imread(path) for path in paths]
