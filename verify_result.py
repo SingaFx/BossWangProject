@@ -31,7 +31,6 @@ def download_reCaptcha(uid):
         directory = directory + '/img/'
         if not os.path.exists(directory):
             os.makedirs(directory)
-        print "Get reCAPTCHA image...."
         with open(directory + fname, "wb") as handle:
             for data in r.iter_content(chunk_size=1024):
                 handle.write(data)
@@ -43,14 +42,16 @@ def download_reCaptcha(uid):
 
 
 def evaluate(response, challenge):
+    public_key = '6LfIKgsUAAAAAMTcTP80XeGNN4qzrgluksw030Vf'
+    private_key = '6LfIKgsUAAAAAHyp-LaOAe2MxaGrdkdokBiX1hSw'
     verify_url = 'https://www.google.com/recaptcha/api/verify'
     # Verify response
     try:
         fk_ip = socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
         r = requests.post(verify_url, data={'privatekey':private_key, 'response': response, 'challenge': challenge, 'remoteip': fk_ip})
         if "true" in r.text:
-            print True
+            return True
         else:
-            print False
+            return False
     except Exception as e:
         print e
