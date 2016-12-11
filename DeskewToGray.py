@@ -128,13 +128,13 @@ def fill_white_space(img):
         img[i, j] = darkest
     return img
 
-def splitReCaptcha(im, directory, outdir, white_out_dir):
+def deskew_to_gray(im, directory, outdir, white_out_dir):
     img = cv2.imread(im, 0)
     backup = img.copy()
     h, w = img.shape[0], img.shape[1]
     count = 0
     filename = im.replace(".jpeg", "")
-
+    splits, deskews, removes, fills = [], [], [], []
     for i in xrange(0, h):
         for j in xrange(0, w):
             if img[i, j] < white_threshold:
@@ -156,6 +156,7 @@ def splitReCaptcha(im, directory, outdir, white_out_dir):
                         sub = fill_white_space(sub)
                     cv2.imwrite(os.path.join(white_out_dir, '{0}_fill_white_{1}.jpeg'.format(filename, count)), sub)
                     count += 1
+    return splits, deskews, removes, fills
 
 if __name__ == '__main__':
     sys.setrecursionlimit(20000)
@@ -170,4 +171,4 @@ if __name__ == '__main__':
         os.makedirs(white_out_dir)
     for filename in os.listdir(indir):
         if filename.endswith(".jpeg"):
-            splitReCaptcha(filename, directory, outdir, white_out_dir)
+            deskew_to_gray(filename, directory, outdir, white_out_dir)
