@@ -28,10 +28,10 @@ def plot_colors(hist, centroids, file):
 
 def process_gray(file):
     img = cv2.imread(file)
-    name = file[file.find('/') + 1: file.rfind('.')]
+    name = file[file.rfind('/') + 1: file.rfind('.')]
     grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     grey_img_reshape = grey_img.reshape((grey_img.shape[0] * grey_img.shape[1], 1))
-    clt = KMeans(n_clusters = 2, init=np.ndarray(shape=(2, 1), buffer=np.array([0.0, 255.0])))
+    clt = KMeans(n_clusters = 2, init=np.ndarray(shape=(2, 1), buffer=np.array([0.0, 255.0])), n_init=1)
     clt.fit(grey_img_reshape)
 
     silhouette = metrics.silhouette_score(grey_img_reshape, clt.labels_, metric='euclidean')
