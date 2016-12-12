@@ -77,8 +77,8 @@ if __name__ == '__main__':
     save_progress = "pretrained_model.w"
     keras.backend.set_image_dim_ordering("th")
 
-    pixels_filename = "train-pixels.ubyte.npy"
-    labels_filename = "train-labels.ubyte.npy"
+    pixels_filename = "pixels.ubyte.npy"
+    labels_filename = "labels.ubyte.npy"
 
     dev_pixels_filename = "dev-pixels.ubyte.npy"
     dev_labels_filename = "dev-labels.ubyte.npy"
