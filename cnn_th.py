@@ -33,7 +33,7 @@ def predict_from_features(X, y, X_test, y_test, save_progress=None):
         model.load_weights(save_progress)
     sgd = SGD(lr=1e-4, decay=0.0, momentum=0.9, nesterov=False)
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
-    model.fit(X, y, batch_size=50, nb_epoch=10, verbose=1, validation_data=(X_test, y_test))
+    model.fit(X, y, batch_size=50, nb_epoch=100, verbose=1, validation_data=(X_test, y_test))
     if save_progress != None:
         model.save_weights(save_progress)
     return model.evaluate(X_test, y_test, verbose=0)
