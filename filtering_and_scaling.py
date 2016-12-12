@@ -30,7 +30,7 @@ def image_to_numpy_array(paths):
     test_pixels = np.zeros((num_examples, w * h), dtype=np.ubyte)
     for i in xrange(0, num_examples):
         test_pixels[i, :] = images[i][:, 0]
-    output_file = paths[0][:paths[0].rfind("/")] + "/test-pixels.ubyte"
+    output_file = paths[0][:paths[0].rfind("/")] + "/test-pixels_{0}.ubyte".format(str(np.random.randint(0, 915688)))
     np.save(output_file, test_pixels)
 
     return results, output_file + ".npy"

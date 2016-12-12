@@ -27,7 +27,7 @@ w, h = 28, 28
 labels = "0123456789ABCDEFGHIJKLMNPQRSTUVWXYZ"
 char_to_class = {labels[i]:i for i in xrange(0, len(labels))}
 
-data_dir = "data/letter/"
+data_dir = "data/letter_2/"
 images = []
 labels = []
 for dir_name in os.listdir(data_dir):
@@ -56,8 +56,8 @@ for i in xrange(0, num_examples):
     dev_pixels[i, :] = images[i][:, 0]
     dev_labels[i] = labels[i]
 
-np.save("dev-pixels.ubyte", dev_pixels)
-np.save("dev-labels.ubyte", dev_labels)
+np.save("train-pixels.ubyte", dev_pixels)
+np.save("train-labels.ubyte", dev_labels)
 
 
 

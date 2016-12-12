@@ -33,19 +33,19 @@ def predict_from_features(X, y, X_test, y_test, save_progress=None):
         model.load_weights(save_progress)
     sgd = SGD(lr=1e-4, decay=0.0, momentum=0.9, nesterov=False)
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
-    model.fit(X, y, batch_size=50, nb_epoch=1, verbose=1, validation_data=(X_test, y_test))
+    model.fit(X, y, batch_size=50, nb_epoch=10, verbose=1, validation_data=(X_test, y_test))
     if save_progress != None:
         model.save_weights(save_progress)
     return model.evaluate(X_test, y_test, verbose=0)
 
 # deal with O/0 and L/1 confusion
-def fine_tune(classified_chars):
+def process_confliction(classified_chars):
     num_result = len(classified_chars)
     num_digits = 0
     for d in classified_chars:
         if d >= '0' and d <= '9':
             num_digits += 1
-    if (float(num_digits) / num_result) > 0.6:
+    if (float(num_digits) / num_result) > 0.8:
         return classified_chars
     for i in xrange(0, num_result):
         if classified_chars[i] == '0':
@@ -54,30 +54,31 @@ def fine_tune(classified_chars):
             classified_chars[i] = 'L'
     return classified_chars
 
-def classify_digits(pretraine_weights, filename):
+def load_pretrain_model(pretraine_weights):
     keras.backend.set_image_dim_ordering("th")
+    model = construct_model()
+    model.load_weights(pretraine_weights) # load model
+    return model
+
+def classify_digits(model, filename):    
     labels = "0123456789ABCDEFGHIJKLMNPQRSTUVWXYZ"
     class_to_char = {i:labels[i] for i in xrange(0, len(labels))}
     images = np.load(filename) # load data
-    model = construct_model()
-    model.load_weights(pretraine_weights) # load model
 
     w, h = 28, 28
     images = images.reshape(images.shape[0], 1, w, h)
     images[images < 128.0] = 0
     images[images > 127.0] = 1
-
     labels = np.argmax(model.predict(images), axis=1)
-
     classified_chars = [class_to_char[label] for label in labels]
-    return "".join(fine_tune(classified_chars))
+    return "".join(process_confliction(classified_chars))
 
 if __name__ == '__main__':
     save_progress = "pretrained_model.w"
     keras.backend.set_image_dim_ordering("th")
 
-    pixels_filename = "pixels.ubyte.npy"
-    labels_filename = "labels.ubyte.npy"
+    pixels_filename = "train-pixels.ubyte.npy"
+    labels_filename = "train-labels.ubyte.npy"
 
     dev_pixels_filename = "dev-pixels.ubyte.npy"
     dev_labels_filename = "dev-labels.ubyte.npy"

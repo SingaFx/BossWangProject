@@ -44,7 +44,6 @@ def process_gray(file):
         hist[0], hist[1] = hist[1], hist[0]
     else:
         avg = clt.cluster_centers_[0] + (clt.cluster_centers_[1] - clt.cluster_centers_[0]) * 3 / 4
-    print name, clt.cluster_centers_[0], clt.cluster_centers_[1], avg, hist[0], hist[1]
     # solve bold text
     block_size, C = 39, 2
     if hist[0] > 0.45 and hist[0] < 0.55:
